@@ -20,6 +20,7 @@ class Tpl {
 	protected $file_ext = '.tpl.php';
 	protected $holder = 'tpl';
 	protected $theme_path;
+	protected $debug = '';
 	protected $css = '';
 	protected $js = '';
 
@@ -63,6 +64,12 @@ class Tpl {
 	public function setLang($name,$value){
 		$name = "lang_".$name;
 		$this->lang[$name] = $value;
+	}
+
+	public function setDebug($value){
+		//false or null become nullstring ''
+		$this->debug = (($value === false) || (is_null($value))) ? '' : $value;
+		return $this;
 	}
 
 	public function setConstants($constants=array(),$overwrite=true){
@@ -147,7 +154,8 @@ class Tpl {
 		$this->setConstant('css',$this->theme_path.'/css');
 		$this->setConstant('js',Config::get('url','uri').'/js');
 		$this->setConstant('img',$this->theme_path.'/img');
-		$this->setconstant('alert','');
+		$this->setConstant('alert','');
+		$this->setConstant('debug','');
 
 		//set delayed alerts
 		if(session('delayed_alert')){
@@ -166,6 +174,10 @@ class Tpl {
 		);
 	}
 	
+	public function debug(){
+		$this->setConstant('debug',$this->debug);
+	}
+	
 	public function css(){
 		$this->setConstant('css',$this->css);
 	}
@@ -178,6 +190,7 @@ class Tpl {
 		$this->css();
 		$this->js();
 		$this->stats();
+		$this->debug();
 		$this->parseConstants();
 		$this->parseConstants(); //2nd pass for const in const
 		$body = $this->body;
