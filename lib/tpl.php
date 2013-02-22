@@ -66,9 +66,9 @@ class Tpl {
 		$this->lang[$name] = $value;
 	}
 
-	public function setDebug($value){
+	public function addDebug($value){
 		//false or null become nullstring ''
-		$this->debug = (($value === false) || (is_null($value))) ? '' : $value;
+		$this->debug .= PHP_EOL . (($value === false) || (is_null($value))) ? '' : $value;
 		return $this;
 	}
 
