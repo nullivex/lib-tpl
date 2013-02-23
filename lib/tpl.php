@@ -20,7 +20,7 @@ class Tpl {
 	protected $file_ext = '.tpl.php';
 	protected $holder = 'tpl';
 	protected $theme_path;
-	protected $debug = '';
+	protected $debug = array();
 	protected $css = '';
 	protected $js = '';
 
@@ -67,8 +67,11 @@ class Tpl {
 	}
 
 	public function addDebug($value){
+		$bt = debug_backtrace();
 		//false or null become nullstring ''
-		$this->debug .= PHP_EOL . ((($value === false) || (is_null($value))) ? '' : $value);
+		$info = sprintf('%s() at line %d in %s',$bt[1]['function'],$bt[1]['line'],$bt[1]['file']);
+		$this->debug[] = array($bt[1]['function'],$bt[1]['line'],$bt[1]['file'],(($value === false) || (is_null($value))) ? '' : $value);
+		unset($bt);
 		return $this;
 	}
 
@@ -175,7 +178,17 @@ class Tpl {
 	}
 	
 	public function debug(){
-		$this->setConstant('debug',$this->debug);
+		$dbg = array();
+		if(count($this->debug)){
+			$dbg[] = $this->parse('global','debug_init',array(),true);
+			foreach($this->debug as $d){
+				$title = sprintf('%s() @ line %d: %s',$d[0],$d[1],$d[2]);
+				$dbg[] = $this->parse('global','debug_entry',array('title'=>$title,'entry'=>$d[3],'handle'=>'dbg_'.md5($title.$d[3])),true);
+			}
+			$dbg[] = $this->parse('global','debug_end',array(),true);
+		}
+		$this->setConstant('debug',implode(PHP_EOL,$dbg));
+		unset($dbg);
 	}
 	
 	public function css(){
