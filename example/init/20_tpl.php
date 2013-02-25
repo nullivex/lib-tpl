@@ -2,12 +2,28 @@
 lib('tpl');
 
 //load tpl
-Tpl::_get()->setPath(Config::get('tpl','path'));
-Tpl::_get()->setThemePath(Config::get('tpl','theme_path'));
-Tpl::_get()->initConstants();
-Tpl::_get()->setConstant('lss_version',LSS_VERSION);
-Tpl::_get()->setConstant('version',VERSION);
+$theme = (Config::get('theme','name') ? Config::get('theme','name') : 'default');
+Tpl::_get()->setPath(ROOT_GROUP.'/theme/'.$theme);
+Tpl::_get()->setUri('/theme/'.$theme);
+Tpl::_get()->setConstants(array(
+	 'lss_version'		=>	LSS_VERSION
+	,'version'			=>	VERSION
+	,'site_name'		=>	Config::get('info','site_name')
+	,'site_title'		=>	Config::get('info','site_name')
+	,'uri'				=>	Config::get('url','uri')
+	,'url'				=>	Config::get('url','url')
+	,'theme_path'		=>	Tpl::_get()->path
+	,'copyright'		=>	'© '.date('Y').' '.Config::get('info','site_name')
+));
 
-//title stuff
-define("SITE_TITLE",' | '.Config::get('info','site_name'));
-Tpl::_get()->setConstant('site_title',Config::get('info','site_name'));
+//set delayed alerts
+if(session('delayed_alert')){
+	$alert = Tpl::_get()->get('alert');
+	if(!is_array($alert)) $alert = array();
+	$alert = array_merge($alert,session('delayed_alert'));
+	Tpl::_get()->setConstant('alert',$alert);
+	session('delayed_alert','');
+}
+
+//cleanup
+unset($theme);
