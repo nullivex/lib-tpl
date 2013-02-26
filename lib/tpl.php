@@ -167,7 +167,6 @@ class Tpl {
 			//	the buffer and get more verbose output
 			ob_clean();
 			echo $content;
-			var_dump($e);
 			throw $e;
 		}
 		//if we dont have the tidy extension lets just output now
