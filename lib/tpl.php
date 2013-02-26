@@ -125,12 +125,6 @@ class Tpl {
 		$stats = $this->stats();
 		if(!empty($stats)) $this->setConstant('stats',$stats);
 		unset($stats);
-		//debug
-		$debug = $this->debug();
-		if(!empty($debug)) $this->setConstant('debug',$debug);
-		unset($debug);
-		//export globals to templating engine
-		$tpl->global = $this->constants;
 		//add global urls if the lib is loaded
 		if(is_callable(array('Url','_all')))
 			$tpl->urls = Url::_all();
@@ -141,6 +135,12 @@ class Tpl {
 			if(strpos($name,' ') !== false) continue;
 			$tpl->$name = $val;
 		}
+		//debug
+		$debug = $this->debug();
+		if(!empty($debug)) $this->setConstant('debug',$debug);
+		unset($debug);
+		//export globals to templating engine
+		$tpl->global = $this->constants;
 		//execute template call
 		$out = $tpl->execute();
 		//if we have the tidy extension lets clean up the output
