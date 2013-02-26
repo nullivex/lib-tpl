@@ -1,23 +1,27 @@
 <?php
 
-require_once(ROOT.'/usr/phptal/PHPTAL.php');
-
 class Tpl {
 
+	//output handling
 	const OUTPUT_DIRECT = true;
+	const OUTPUT_RETURN = false;
 
+	//instance for singleton
 	static $inst = false;
 
+	//tpl environment
 	public $path = 'theme';
 	public $uri = '';
 	public $body = null;
 	public $init = false;
 
+	//globals
 	protected $constants = array();
 	protected $debug = array();
 	protected $css = null;
 	protected $js = null;
 
+	//singleton access
 	public static function _get(){
 		if(self::$inst === false){
 			$class = __CLASS__;
@@ -26,6 +30,22 @@ class Tpl {
 		return self::$inst;
 	}
 
+	//--------------------------------------------------------
+	//Environment Modifiers
+	//--------------------------------------------------------
+	public function setPath($value){
+		$this->path = $value;
+		return $this;
+	}
+	
+	public function setUri($value){
+		$this->uri = $value;
+		return $this;
+	}
+
+	//--------------------------------------------------------
+	//Javascript and CSS Handlers
+	//--------------------------------------------------------
 	public function addCss($file,$media='screen'){
 		return $this->css .= sprintf(
 			 "\t<link type=\"text/css\" rel=\"stylesheet\" href=\"%s\" media=\"%s\" />\n"
@@ -38,47 +58,29 @@ class Tpl {
 		return $this->js .= sprintf("\t<script type=\"text/javascript\" src=\"%s\"></script>\n",$file);
 	}
 
-	public function setPath($value){
-		$this->path = $value;
-		return $this;
-	}
-	
-	public function setUri($value){
-		$this->uri = $value;
-		return $this;
-	}
-	
-	public function set($name,$value,$overwrite=true){
-		$this->setConstant($name,$value,$overwrite);
-	}
-
-	public function setConstant($name,$value,$overwrite=true){
+	//--------------------------------------------------------
+	//Constant Handling
+	//--------------------------------------------------------	
+	public function set($name,$value=null,$overwrite=true){
+		if(is_array($name)){
+			$overwrite = $value;
+			foreach($name as $key => $val) $this->set($key,$val,$overwrite);
+			return true;
+		}
 		if(isset($this->constants[$name]) && $overwrite === false) return false;
 		$this->constants[$name] = $value;
 		return true;
 	}
-
-	public function setConstants($constants=array(),$overwrite=true){
-		if(!is_array($constants)) return $this;
-		foreach($constants AS $name => $value) $this->setConstant($name,$value,$overwrite);
-		return $this;
-	}
-
-	public function addDebug($value){
-		$bt = debug_backtrace();
-		//false or null become nullstring ''
-		$info = sprintf('%s() at line %d in %s',$bt[1]['function'],$bt[1]['line'],$bt[1]['file']);
-		$this->debug[] = array($bt[1]['function'],$bt[1]['line'],$bt[1]['file'],(($value === false) || (is_null($value))) ? '' : $value);
-		unset($bt);
-		return $this;
-	}
-
+	
 	public function get($name){
 		if(is_null($name)) return $this->constants;
 		if(!isset($this->constants[$name])) return null;
 		return $this->constants[$name];
 	}
 
+	//--------------------------------------------------------
+	//Direct body functions
+	//--------------------------------------------------------
 	public function add($html){
 		return $this->body .= $html;
 	}
@@ -88,12 +90,16 @@ class Tpl {
 		return $this;
 	}
 
-	public function stats(){
-		$stats = 'Execution: '.number_format((microtime(true) - START),5);
-		if(is_callable(array('Db','getQueryCount')))
-			$stats .= ' | Queries: '.Db::_get()->getQueryCount();
-		$stats .= ' | Memory: '.number_format((memory_get_usage()/1024/1024),2).'MB';
-		return $stats;
+	//--------------------------------------------------------
+	//Debug handling
+	//--------------------------------------------------------
+	public function addDebug($value){
+		$bt = debug_backtrace();
+		//false or null become nullstring ''
+		$info = sprintf('%s() at line %d in %s',$bt[1]['function'],$bt[1]['line'],$bt[1]['file']);
+		$this->debug[] = array($bt[1]['function'],$bt[1]['line'],$bt[1]['file'],(($value === false) || (is_null($value))) ? '' : $value);
+		unset($bt);
+		return $this;
 	}
 
 	public function debug(){
@@ -107,27 +113,45 @@ class Tpl {
 		return $dbg;
 	}
 
-	public function output($file,$tags=array(),$echo=false){
+	//--------------------------------------------------------
+	//Script Stats
+	//--------------------------------------------------------
+	public function stats(){
+		$stats = 'Execution: '.number_format((microtime(true) - START),5);
+		if(is_callable(array('Db','getQueryCount')))
+			$stats .= ' | Queries: '.Db::_get()->getQueryCount();
+		$stats .= ' | Memory: '.number_format((memory_get_usage()/1024/1024),2).'MB';
+		return $stats;
+	}
+
+	//--------------------------------------------------------
+	//Output Function
+	//	This is the main output handler that calls into PHPTAL
+	//	it will render the specified template file and add
+	//	the passed tags to the environment
+	//	it also sets up the global environment for page parsing
+	//	NOTE: there should only be one call to this per
+	//		page unless in extreme circumstances
+	//	ARGUMENTS
+	//		file	the template file to be parsed
+	//		tags	array of variables to be added to env
+	//		echo	when true the tpl system will output
+	//					directly to the browser and exit
+	//--------------------------------------------------------
+	public function output($file,$tags=array(),$echo=true){
+		//load PHPTAL
+		require_once(ROOT.'/usr/phptal/PHPTAL.php');
 		//if there is anything in the buffer, move it to debug
 		if(($content = ob_get_contents()) !== '')
 			$this->addDebug($content);
-		//init based on the theme (only once)
-		if(file_exists($this->path.'/init.php') && !$this->init){
-			include($this->path.'/init.php');
-			$this->init = true;
-		}
 		//init template handler
+		$this->initTheme();
+		if(!file_exists($this->path.'/'.$file))
+			throw new Exception('Template file doesnt exist: '.$this->path.'/'.$file);
+		//start up template engine
 		$tpl = new PHPTAL($this->path.'/'.$file);
-		//setup globals
-		if(!empty($this->css)) $this->setConstant('css',$this->css);
-		if(!empty($this->js)) $this->setConstant('js',$this->js);
-		//stats
-		$stats = $this->stats();
-		if(!empty($stats)) $this->setConstant('stats',$stats);
-		unset($stats);
-		//add global urls if the lib is loaded
-		if(is_callable(array('Url','_all')))
-			$tpl->urls = Url::_all();
+		//setup env for template engine
+		$this->setupEnv($tpl);
 		//add tags to context
 		foreach($tags as $name => $val){
 			//dont add invalid vars
@@ -135,31 +159,85 @@ class Tpl {
 			if(strpos($name,' ') !== false) continue;
 			$tpl->$name = $val;
 		}
-		//debug
-		$debug = $this->debug();
-		if(!empty($debug)) $this->setConstant('debug',$debug);
-		unset($debug);
-		//export globals to templating engine
-		$tpl->global = $this->constants;
 		//execute template call
-		$out = $tpl->execute();
-		//if we have the tidy extension lets clean up the output
-		if(!extension_loaded('tidy')) return $out;
-		//cleanup the output
-		$tidy = new tidy();
-		$tidy->parseString($out,Config::get('theme','tidy'),'utf8');
-		$tidy->cleanRepair();
-		if($echo){
-			ob_end_clean();
-			echo $tidy;
-			return true;
-		} else return $tidy;
+		try {
+			$out = $tpl->execute();
+		} catch(Exception $e){
+			//before we throw this upstream we want to restore
+			//	the buffer and get more verbose output
+			ob_clean();
+			echo $content;
+			var_dump($e);
+			throw $e;
+		}
+		//if we dont have the tidy extension lets just output now
+		if(!extension_loaded('tidy')){
+			//print output to browser / terminal
+			if($echo){
+				$this->reset();
+				ob_end_clean();
+				echo $out;
+				return true;
+			} else {
+				$this->add($out);
+				return $out;
+			}
+		//we do have tidy so lets do some cleanup
+		} else {
+			//cleanup the output
+			$tidy = new tidy();
+			$tidy->parseString($out,Config::get('theme','tidy'),'utf8');
+			$tidy->cleanRepair();
+			if($echo){
+				ob_end_clean();
+				echo $tidy;
+				return true;
+			} else {
+				$this->add($tidy);
+				return $tidy;
+			}
+		}
 	}
 
+	//--------------------------------------------------------
+	//Output Helpers
+	//--------------------------------------------------------
+	protected function initTheme(){
+		//init based on the theme (only once)
+		if(file_exists($this->path.'/init.php') && !$this->init){
+			include($this->path.'/init.php');
+			$this->init = true;
+			return true;
+		}
+		return false;
+	}
+
+	protected function setupEnv($tpl){
+		//setup globals
+		if(!empty($this->css)) $this->set('css',$this->css);
+		if(!empty($this->js)) $this->set('js',$this->js);
+		//stats
+		$stats = $this->stats();
+		if(!empty($stats)) $this->set('stats',$stats);
+		unset($stats);
+		//debug
+		$debug = $this->debug();
+		if(!empty($debug)) $this->set('debug',$debug);
+		unset($debug);
+		//add global urls if the lib is loaded
+		if(is_callable(array('Url','_all')))
+			$tpl->url = Url::_all();
+		//export globals to templating engine
+		$tpl->global = $this->constants;
+		return true;
+	}
+
+	//--------------------------------------------------------
+	//Magic Methods
+	//--------------------------------------------------------
 	public function __toString(){
-		return $this->output();
+		return $this->body;
 	}
 
 }
-
 
