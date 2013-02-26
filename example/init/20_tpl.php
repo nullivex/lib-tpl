@@ -5,7 +5,7 @@ lib('tpl');
 $theme = (Config::get('theme','name') ? Config::get('theme','name') : 'default');
 Tpl::_get()->setPath(ROOT_GROUP.'/theme/'.$theme);
 Tpl::_get()->setUri('/theme/'.$theme);
-Tpl::_get()->setConstants(array(
+Tpl::_get()->set(array(
 	 'lss_version'		=>	LSS_VERSION
 	,'version'			=>	VERSION
 	,'site_name'		=>	Config::get('info','site_name')
@@ -21,7 +21,7 @@ if(session('delayed_alert')){
 	$alert = Tpl::_get()->get('alert');
 	if(!is_array($alert)) $alert = array();
 	$alert = array_merge($alert,session('delayed_alert'));
-	Tpl::_get()->setConstant('alert',$alert);
+	Tpl::_get()->set('alert',$alert);
 	session('delayed_alert','');
 }
 
