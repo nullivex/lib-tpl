@@ -40,6 +40,7 @@ class Tpl {
 	}
 	
 	public function setUri($value){
+		if(strrpos($value,'/') !== (strlen($value)-1)) $value .= '/';
 		$this->uri = $value;
 		$this->initTheme();
 		return $this;
@@ -56,8 +57,18 @@ class Tpl {
 		);
 	}
 
+	public function resetCss(){
+		$this->css = null;
+		return true;
+	}
+
 	public function addJs($file){
 		return $this->js .= sprintf("\t<script type=\"text/javascript\" src=\"%s\"></script>\n",$file);
+	}
+
+	public function resetJs(){
+		$this->js = null;
+		return true;
 	}
 
 	//--------------------------------------------------------
