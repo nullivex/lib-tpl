@@ -4,7 +4,7 @@ lib('tpl');
 //load tpl
 $theme = (Config::get('theme','name') ? Config::get('theme','name') : 'default');
 Tpl::_get()->setPath(ROOT_GROUP.'/theme/'.$theme);
-Tpl::_get()->setUri('/theme/'.$theme);
+Tpl::_get()->setUri('/theme/'.$theme.'/');
 Tpl::_get()->set(array(
 	 'lss_version'		=>	LSS_VERSION
 	,'version'			=>	VERSION
@@ -12,7 +12,7 @@ Tpl::_get()->set(array(
 	,'site_title'		=>	Config::get('info','site_name')
 	,'uri'				=>	Config::get('url','uri')
 	,'url'				=>	Config::get('url','url')
-	,'theme_path'		=>	Tpl::_get()->path
+	,'theme_path'		=>	Tpl::_get()->uri
 	,'copyright'		=>	'© '.date('Y').' '.Config::get('info','site_name')
 ));
 
