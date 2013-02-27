@@ -20,6 +20,7 @@ class Tpl {
 	protected $debug = array();
 	protected $css = null;
 	protected $js = null;
+	protected $stub = array();
 
 	//singleton access
 	public static function _get(){
@@ -71,7 +72,7 @@ class Tpl {
 		$this->constants[$name] = $value;
 		return true;
 	}
-	
+
 	public function get($name){
 		if(is_null($name)) return $this->constants;
 		if(!isset($this->constants[$name])) return null;
@@ -87,6 +88,11 @@ class Tpl {
 
 	public function reset(){
 		$this->body = '';
+		return $this;
+	}
+
+	public function setStub($name,$value=true){
+		$this->stub[$name] = ($value)?true:false;
 		return $this;
 	}
 
@@ -145,11 +151,15 @@ class Tpl {
 		if(($content = ob_get_contents()) !== '')
 			$this->addDebug($content);
 		//init template handler
+		$stub_overrides = $this->stub; //backup before initTheme or requested stubs get stomped
 		$this->initTheme();
 		if(!file_exists($this->path.'/'.$file))
 			throw new Exception('Template file doesnt exist: '.$this->path.'/'.$file);
 		//start up template engine
 		$tpl = new PHPTAL($this->path.'/'.$file);
+		//merge stub defaults with the overrides from earlier
+		$tpl->stub = array_merge($this->stub,$stub_overrides);
+		unset($stub_overrides);
 		//setup env for template engine
 		$this->setupEnv($tpl);
 		//add tags to context
@@ -219,13 +229,18 @@ class Tpl {
 		$stats = $this->stats();
 		if(!empty($stats)) $this->set('stats',$stats);
 		unset($stats);
-		//debug
-		$debug = $this->debug();
-		if(!empty($debug)) $this->set('debug',$debug);
-		unset($debug);
 		//add global urls if the lib is loaded
 		if(is_callable(array('Url','_all')))
 			$tpl->url = Url::_all();
+		//debug
+		$debug = $this->debug();
+		if(!empty($debug)){
+			$this->set('debug',$debug);
+			ob_start();
+			var_dump($debug);
+			file_put_contents('/tmp/debug',ob_get_clean());
+		}
+		unset($debug);
 		//export globals to templating engine
 		$tpl->global = $this->constants;
 		return true;
@@ -239,4 +254,3 @@ class Tpl {
 	}
 
 }
-
