@@ -41,6 +41,7 @@ class Tpl {
 	
 	public function setUri($value){
 		$this->uri = $value;
+		$this->initTheme();
 		return $this;
 	}
 
@@ -151,15 +152,12 @@ class Tpl {
 		if(($content = ob_get_contents()) !== '')
 			$this->addDebug($content);
 		//init template handler
-		$stub_overrides = $this->stub; //backup before initTheme or requested stubs get stomped
-		$this->initTheme();
 		if(!file_exists($this->path.'/'.$file))
 			throw new Exception('Template file doesnt exist: '.$this->path.'/'.$file);
 		//start up template engine
 		$tpl = new PHPTAL($this->path.'/'.$file);
 		//merge stub defaults with the overrides from earlier
-		$tpl->stub = array_merge($this->stub,$stub_overrides);
-		unset($stub_overrides);
+		$tpl->stub = $this->stub;
 		//setup env for template engine
 		$this->setupEnv($tpl);
 		//add tags to context
