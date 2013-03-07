@@ -158,6 +158,8 @@ class Tpl {
 	//--------------------------------------------------------
 	public function output($file,$tags=array(),$echo=true){
 		//load PHPTAL
+		if(!file_exists(ROOT.'/usr/phptal/PHPTAL.php');
+			throw new Exception('PHPTAL not installed: run usr/setup.sh install phptal');
 		require_once(ROOT.'/usr/phptal/PHPTAL.php');
 		//if there is anything in the buffer, move it to debug
 		if(($content = ob_get_contents()) !== '')
