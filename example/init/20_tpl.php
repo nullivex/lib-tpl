@@ -1,5 +1,5 @@
 <?php
-lib('tpl');
+ld('tpl');
 
 //load tpl
 $theme = (Config::get('theme','name') ? Config::get('theme','name') : 'default');
