@@ -1,5 +1,5 @@
 <?php
-ld('tpl');
+ld('/func/mda_glob','tpl');
 
 //load tpl
 $theme = (Config::get('theme','name') ? Config::get('theme','name') : 'default');
