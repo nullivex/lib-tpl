@@ -1,4 +1,5 @@
 <?php
+ld('/func/format');
 
 class Tpl {
 
