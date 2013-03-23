@@ -1,4 +1,24 @@
 <?php
+/**
+ *  OpenLSS - Lighter Smarter Simpler
+ *
+ *	This file is part of OpenLSS.
+ *
+ *	OpenLSS is free software: you can redistribute it and/or modify
+ *	it under the terms of the GNU Lesser General Public License as
+ *	published by the Free Software Foundation, either version 3 of
+ *	the License, or (at your option) any later version.
+ *
+ *	OpenLSS is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU Lesser General Public License for more details.
+ *
+ *	You should have received a copy of the 
+ *	GNU Lesser General Public License along with OpenLSS.
+ *	If not, see <http://www.gnu.org/licenses/>.
+ */
+namespace LSS;
 ld('/func/format');
 
 class Tpl {
@@ -15,6 +35,7 @@ class Tpl {
 	public $uri = '';
 	public $body = null;
 	public $init = false;
+	public $tpl_file_ext = '.xhtml';
 
 	//globals
 	protected $constants = array();
@@ -158,18 +179,18 @@ class Tpl {
 	//					directly to the browser and exit
 	//--------------------------------------------------------
 	public function output($file,$tags=array(),$echo=true){
-		//load PHPTAL
-		if(!file_exists(ROOT.'/usr/phptal/PHPTAL.php'))
-			throw new Exception('PHPTAL not installed run: cd '.ROOT.'usr; ./setup.sh install phptal');
-		require_once(ROOT.'/usr/phptal/PHPTAL.php');
 		//if there is anything in the buffer, move it to debug
 		if(($content = ob_get_contents()) !== '')
-			$this->addDebug($content);
+			$this->addDebug('<pre>'.$content.'</pre>');
 		//init template handler
-		if(!file_exists($this->path.'/'.$file))
-			throw new Exception('Template file doesnt exist: '.$this->path.'/'.$file);
+		$stub_overrides = $this->stub; //backup before initTheme or requested stubs get stomped
+		$this->initTheme();
+		if(!file_exists($this->path.'/'.$file.$this->tpl_file_ext))
+			throw new Exception('Template file doesnt exist: '.$this->path.'/'.$file.$this->tpl_file_ext);
 		//start up template engine
-		$tpl = new PHPTAL($this->path.'/'.$file);
+		$tpl = new \PHPTAL\PHPTAL($this->path.'/'.$file.$this->tpl_file_ext);
+		//init the tpl (load overrides)
+		$this->initTpl($tpl,$file);
 		//merge stub defaults with the overrides from earlier
 		$tpl->stub = $this->stub;
 		//setup env for template engine
@@ -228,6 +249,14 @@ class Tpl {
 		if(file_exists($this->path.'/init.php') && !$this->init){
 			include($this->path.'/init.php');
 			$this->init = true;
+			return true;
+		}
+		return false;
+	}
+
+	protected function initTpl($tpl,$file){
+		if(file_exists($this->path.'/'.$file.'.php')){
+			include($this->path.'/'.$file.'.php');
 			return true;
 		}
 		return false;
