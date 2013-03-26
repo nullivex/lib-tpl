@@ -6,7 +6,8 @@ Wrapper library for managing PHPTAL environment. Also supports HTML Tidy formatt
 Usage
 ----
 ```php
-ld('/func/mda_glob','tpl','config');
+use \LSS\Config;
+use \LSS\Tpl;
 
 //init templating system
 $theme = (Config::get('theme','name') ? Config::get('theme','name') : 'default');

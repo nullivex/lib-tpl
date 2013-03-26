@@ -19,7 +19,6 @@
  *	If not, see <http://www.gnu.org/licenses/>.
  */
 namespace LSS;
-ld('/func/format');
 
 class Tpl {
 
