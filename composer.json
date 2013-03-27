@@ -28,6 +28,7 @@
 		,"openlss/func-format":		">=0.0.1"
 		,"openlss/func-mda-glob":	">=0.0.1"
 		,"openlss/lib-config":		">=0.0.1"
+		,"openlss/lib-url":			">=0.0.1"
 	}
 	,"require-dev": {
 		 "phptal/phptal":			"dev-master"
@@ -35,6 +36,7 @@
 		,"openlss/func-format":		"dev-master"
 		,"openlss/func-mda-glob":	"dev-master"
 		,"openlss/lib-config":		"dev-master"
+		,"openlss/lib-url":			"dev-master"
 	}
 	,"autoload": {
 		"psr-0": {

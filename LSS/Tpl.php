@@ -20,6 +20,10 @@
  */
 namespace LSS;
 
+use \Exception;
+use \PHPTAL;
+use \tidy;
+
 class Tpl {
 
 	//output handling
@@ -187,7 +191,7 @@ class Tpl {
 		if(!file_exists($this->path.'/'.$file.$this->tpl_file_ext))
 			throw new Exception('Template file doesnt exist: '.$this->path.'/'.$file.$this->tpl_file_ext);
 		//start up template engine
-		$tpl = new \PHPTAL\PHPTAL($this->path.'/'.$file.$this->tpl_file_ext);
+		$tpl = new PHPTAL($this->path.'/'.$file.$this->tpl_file_ext);
 		//init the tpl (load overrides)
 		$this->initTpl($tpl,$file);
 		//merge stub defaults with the overrides from earlier
@@ -270,7 +274,7 @@ class Tpl {
 		if(!empty($stats)) $this->set('stats',$stats);
 		unset($stats);
 		//add global urls if the lib is loaded
-		if(is_callable(array('Url','_all')))
+		if(is_callable(array('\LSS\Url','_all')))
 			$tpl->url = Url::_all();
 		//debug
 		$debug = $this->debug();
