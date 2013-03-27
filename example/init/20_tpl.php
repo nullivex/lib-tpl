@@ -18,9 +18,8 @@
  *	GNU Lesser General Public License along with OpenLSS.
  *	If not, see <http://www.gnu.org/licenses/>.
  */
-namespace LSS;
-
-ld('/func/mda_glob','tpl');
+use \LSS\Config;
+use \LSS\Tpl;
 
 //load tpl
 $theme = (Config::get('theme','name') ? Config::get('theme','name') : 'default');
