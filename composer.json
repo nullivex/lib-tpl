@@ -23,12 +23,12 @@
 	]
 	,"require": {
 		 "php":						">=5.3.2"
-		,"phptal/phptal":			"dev-master"
-		,"openlss/core-boot":		"dev-master"
-		,"openlss/func-format":		"dev-master"
-		,"openlss/func-mda-glob":	"dev-master"
-		,"openlss/lib-config":		"dev-master"
-		,"openlss/lib-url":			"dev-master"
+		,"phptal/phptal":			"~0.0.1"
+		,"openlss/core-boot":		"~0.0.1"
+		,"openlss/func-format":		"~0.0.1"
+		,"openlss/func-mda-glob":	"~0.0.1"
+		,"openlss/lib-config":		"~0.0.1"
+		,"openlss/lib-url":			"~0.0.1"
 	}
 	,"autoload": {
 		"psr-0": {
