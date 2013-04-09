@@ -63,7 +63,7 @@ class Tpl {
 		$this->path = $value;
 		return $this;
 	}
-	
+
 	public function setUri($value){
 		if(strrpos($value,'/') !== (strlen($value)-1)) $value .= '/';
 		$this->uri = $value;
