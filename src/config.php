@@ -27,3 +27,6 @@ $config['theme']['tidy'] = array(
 	,'preserve-entities'	=>	true
 	,'wrap'					=>	200
 );
+
+\LSS\Config::setDefaults($config);
+unset($config);
