@@ -188,10 +188,8 @@ class Tpl {
 		//init template handler
 		$stub_overrides = $this->stub; //backup before initTheme or requested stubs get stomped
 		$this->initTheme();
-		if(!file_exists($this->path.'/'.$file.$this->tpl_file_ext))
-			throw new Exception('Template file doesnt exist: '.$this->path.'/'.$file.$this->tpl_file_ext);
 		//start up template engine
-		$tpl = new PHPTAL($this->path.'/'.$file.$this->tpl_file_ext);
+		$tpl = new PHPTAL($this->getTplFile($file));
 		//init the tpl (load overrides)
 		$this->initTpl($tpl,$file);
 		//merge stub defaults with the overrides from earlier
@@ -247,22 +245,44 @@ class Tpl {
 	//--------------------------------------------------------
 	//Output Helpers
 	//--------------------------------------------------------
-	protected function initTheme(){
-		//init based on the theme (only once)
-		if(file_exists($this->path.'/init.php') && !$this->init){
-			include($this->path.'/init.php');
-			$this->init = true;
-			return true;
-		}
+	protected function getTplFile($file,$init=false,$try_default=true){
+		//figure out which file we want to find
+		if($init)
+			$file_ext = '.php';
+		else
+			$file_ext = $this->tpl_file_ext;
+		//check for the override first
+		$tpl_file = $this->path.'/'.$file.$file_ext;
+		if(file_exists($tpl_file))
+			return $tpl_file;
+		if(!$try_default)
+			throw new Exception('Template file doesnt exist: '.$tpl_file);
+		//check the default path
+		$tpl_file = dirname($this->path).'/default/'.$file.$file_ext;
+		if(file_exists($tpl_file))
+			return $tpl_file;
+		throw new Exception('Template file doesnt exist: '.$tpl_file);
 		return false;
 	}
 
-	protected function initTpl($tpl,$file){
-		if(file_exists($this->path.'/'.$file.'.php')){
-			include($this->path.'/'.$file.'.php');
+	protected function initTheme(){
+		try {
+			if($this->init)
+				return true;
+			include($this->getTplFile('init',true));
 			return true;
+		} catch(Exception $e){
+			return false;
 		}
-		return false;
+	}
+
+	protected function initTpl($tpl,$file){
+		try {
+			include($this->getTplFile($file,true));
+			return true;
+		} catch(Exception $e){
+			return false;
+		}
 	}
 
 	protected function setupEnv($tpl){
