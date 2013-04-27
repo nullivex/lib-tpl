@@ -270,6 +270,7 @@ class Tpl {
 			if($this->init)
 				return true;
 			include($this->getTplFile('init',true));
+			$this->init = true;
 			return true;
 		} catch(Exception $e){
 			return false;
