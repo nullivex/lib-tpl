@@ -197,11 +197,13 @@ class Tpl {
 		//setup env for template engine
 		$this->setupEnv($tpl);
 		//add tags to context
-		foreach($tags as $name => $val){
-			//dont add invalid vars
-			if(strpos($name,'_') === 0) continue;
-			if(strpos($name,' ') !== false) continue;
-			$tpl->$name = $val;
+		if(is_array($tags)){
+			foreach($tags as $name => $val){
+				//dont add invalid vars
+				if(strpos($name,'_') === 0) continue;
+				if(strpos($name,' ') !== false) continue;
+				$tpl->$name = $val;
+			}
 		}
 		//execute template call
 		try {
